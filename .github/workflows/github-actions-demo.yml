@@ -1,0 +1,39 @@
+name: Deploy To Surge
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "0 0 * * *"
+jobs:
+  cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: save
+        run: |
+          # do some operation that changes a file in the git repo
+          date > time.txt
+      - name: setup
+        run: |
+          # setup the username and email. I tend to use 'GitHub Actions Bot' with no email by default
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+      - name: commit
+        run: |
+          # Stage the file, commit and push
+          git add time.txt
+          git commit -m "new date commit"
+          git push origin main
+      - name: install
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: build
+        run: |
+          # Build site
+          npm install
+          npm install -g surge
+          npm run export
+          surge ./dist/ ${{ secrets.SURGE_DOMAIN }} --token ${{ secrets.SURGE_TOKEN }}
